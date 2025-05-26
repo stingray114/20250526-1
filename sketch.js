@@ -48,14 +48,17 @@ function draw() {
     } else if (gesture === "paper") {
       // 布 -> 左右臉頰
       targetPoint = keypoints[234]; // 左臉頰
+    } else {
+      // 未偵測到手勢 -> 鼻子
+      targetPoint = keypoints[1]; // 鼻子點
     }
 
     if (targetPoint) {
       const [x, y] = targetPoint;
       noFill();
       stroke(255, 0, 0);
-      strokeWeight(4);
-      ellipse(x, y, 100, 100);
+      strokeWeight(2); // 縮小圈圈的邊框粗細
+      ellipse(x, y, 50, 50); // 縮小圈圈的大小
     }
   }
 }
