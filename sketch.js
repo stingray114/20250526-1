@@ -1,6 +1,9 @@
 let video;
 let facemesh;
+let handpose;
 let predictions = [];
+let handPredictions = [];
+let gesture = ""; // 儲存手勢類型
 
 function setup() {
   createCanvas(640, 480).position(
@@ -11,14 +14,22 @@ function setup() {
   video.size(width, height);
   video.hide();
 
+  // 初始化 Facemesh
   facemesh = ml5.facemesh(video, modelReady);
   facemesh.on('predict', results => {
     predictions = results;
   });
+
+  // 初始化 Handpose
+  handpose = ml5.handpose(video, modelReady);
+  handpose.on('predict', results => {
+    handPredictions = results;
+    detectGesture(); // 偵測手勢
+  });
 }
 
 function modelReady() {
-  // 模型載入完成，可選擇顯示訊息
+  console.log("Model Loaded!");
 }
 
 function draw() {
@@ -27,11 +38,57 @@ function draw() {
   if (predictions.length > 0) {
     const keypoints = predictions[0].scaledMesh;
 
-    // 只在第94點畫紅色圓
-    const [x, y] = keypoints[94];
-    noFill();
-    stroke(255, 0, 0);
-    strokeWeight(4);
-    ellipse(x, y, 100, 100);
+    let targetPoint;
+    if (gesture === "rock") {
+      // 石頭 -> 額頭
+      targetPoint = keypoints[10]; // 額頭點
+    } else if (gesture === "scissors") {
+      // 剪刀 -> 左右眼睛
+      targetPoint = keypoints[159]; // 左眼
+    } else if (gesture === "paper") {
+      // 布 -> 左右臉頰
+      targetPoint = keypoints[234]; // 左臉頰
+    }
+
+    if (targetPoint) {
+      const [x, y] = targetPoint;
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(4);
+      ellipse(x, y, 100, 100);
+    }
+  }
+}
+
+// 偵測手勢
+function detectGesture() {
+  if (handPredictions.length > 0) {
+    const landmarks = handPredictions[0].landmarks;
+
+    // 偵測簡單的剪刀石頭布手勢
+    const thumbTip = landmarks[4]; // 大拇指尖端
+    const indexTip = landmarks[8]; // 食指尖端
+    const middleTip = landmarks[12]; // 中指尖端
+
+    const distanceThumbIndex = dist(
+      thumbTip[0],
+      thumbTip[1],
+      indexTip[0],
+      indexTip[1]
+    );
+    const distanceIndexMiddle = dist(
+      indexTip[0],
+      indexTip[1],
+      middleTip[0],
+      middleTip[1]
+    );
+
+    if (distanceThumbIndex < 30 && distanceIndexMiddle < 30) {
+      gesture = "rock"; // 石頭
+    } else if (distanceThumbIndex > 50 && distanceIndexMiddle > 50) {
+      gesture = "paper"; // 布
+    } else {
+      gesture = "scissors"; // 剪刀
+    }
   }
 }
