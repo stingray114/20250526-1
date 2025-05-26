@@ -39,24 +39,30 @@ function draw() {
     const keypoints = predictions[0].scaledMesh;
 
     let targetPoint;
+    let circleColor; // 圈圈顏色
+
     if (gesture === "rock") {
       // 石頭 -> 額頭
       targetPoint = keypoints[10]; // 額頭點
+      circleColor = [173, 216, 230]; // 淡藍色
     } else if (gesture === "scissors") {
       // 剪刀 -> 左右眼睛
       targetPoint = keypoints[159]; // 左眼
+      circleColor = [255, 182, 193]; // 粉色
     } else if (gesture === "paper") {
       // 布 -> 左右臉頰
       targetPoint = keypoints[234]; // 左臉頰
+      circleColor = [216, 191, 216]; // 淡紫色
     } else {
       // 未偵測到手勢 -> 鼻子
       targetPoint = keypoints[1]; // 鼻子點
+      circleColor = [255, 255, 255]; // 白色
     }
 
     if (targetPoint) {
       const [x, y] = targetPoint;
       noFill();
-      stroke(255, 0, 0);
+      stroke(...circleColor); // 設定圈圈顏色
       strokeWeight(2); // 縮小圈圈的邊框粗細
       ellipse(x, y, 50, 50); // 縮小圈圈的大小
     }
